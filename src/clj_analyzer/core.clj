@@ -100,7 +100,9 @@
   (let [dir (path/path->string path)]
     (letfn [(clj-file? [file]
               (and (.isFile file)
-                   (.endsWith (.getName file) ".clj")))
+                   (or
+                    (.endsWith (.getName file) ".clj")
+                    (.endsWith (.getName file) ".cljc"))))
             (list-files [f]
               (if (.isDirectory f)
                 (mapcat list-files (.listFiles f))
@@ -156,16 +158,16 @@
 
 (def world (atom (create-world)))
 
-(run!
+#_(run!
  (fn [nsinfo]
    (swap! world (fn [current-world] (update-world current-world nsinfo))))
  (analyze-project ["Users" "vanja" "projects" "clj-common"]))
-(run!
+#_(run!
  (fn [nsinfo]
    (swap! world (fn [current-world] (update-world current-world nsinfo))))
  (analyze-project ["Users" "vanja" "projects" "trek-mate"]))
 
-(run!
+#_(run!
  (fn [[full-name object]]
    (println
     (cond
@@ -180,50 +182,19 @@
   first
   (deref world)))
 
-(def a 10)
-
-(println (analyze-clj ["Users" "vanja" "projects" "clj-analyzer" "src"
+#_(println (analyze-clj ["Users" "vanja" "projects" "clj-analyzer" "src"
                        "clj_analyzer" "core.clj"]))
 
 
-(println (analyze-clj ["Users" "vanja" "projects" "clj-analyzer" "project.clj"]))
+#_(println (analyze-clj ["Users" "vanja" "projects" "clj-analyzer" "project.clj"]))
 
 
-(read-clj (io/string->input-stream "(update-in a [:a] (fn [x] x))"))
-(read-clj (io/string->input-stream "(update-in a [:a] #(fn [x] x))"))
+#_(read-clj (io/string->input-stream "(update-in a [:a] (fn [x] x))"))
+#_(read-clj (io/string->input-stream "(update-in a [:a] #(fn [x] x))"))
 
-(clojure.edn/read-string "(update-in a [:a] #(fn [x] x))")
-(clojure.edn/read-string "(update-in a [:a] #(conj %1 x))")
+#_(clojure.edn/read-string "(update-in a [:a] #(fn [x] x))")
+#_(clojure.edn/read-string "(update-in a [:a] #(conj %1 x))")
 
-(clojure.core/read )
 
-(server/create-server
- 7055
- (compojure.core/routes
-  (compojure.core/GET
-      "/"
-      []
-    {
-     :status 200
-     :headers {
-               "Content-Type" "text/html; charset=utf-8"}
-     :body (hiccup/html
-               [:head
-                [:meta {:charset "UTF-8"}]]
-             [:body {:style "font-family:arial; max-width:100%; overflow-x:hidden;"}
-              (map
-               (fn [object]
-                 (list
-                  (cond
-                    (= (:type object) :variable)
-                    "[V]"
-                    (= (:type object) :fn)
-                    "[F]"
-                    :else
-                    "[X]")
-                  (:full-name object)
-                  [:br]))
-              (vals (sort-by first (deref world))))
-             "hello world"
-             [:br]])})))
+
 
