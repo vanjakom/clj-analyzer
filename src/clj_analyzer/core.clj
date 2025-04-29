@@ -54,34 +54,37 @@
 
 (defn analyze-clj [clj-path]
   (println "analyzing" clj-path)
-  (let [data (read-clj-tools (fs/input-stream clj-path))]
-    (reduce
-     (fn [structure element]
-       (if (coll? element)
-         (let [function (first element)]
-           (cond
-             (= function 'ns)
-             (update-in structure [:ns] (constantly (str (second element))))
+  (try
+   (let [data (read-clj-tools (fs/input-stream clj-path))]
+     (reduce
+      (fn [structure element]
+        (if (coll? element)
+          (let [function (first element)]
+            (cond
+              (= function 'ns)
+              (update-in structure [:ns] (constantly (str (second element))))
 
-             (= function 'defn)
-             (update-in
-              structure
-              [:defns]
-              (fn [defns]
-                (conj (or defns []) (str (second element)))))
+              (= function 'defn)
+              (update-in
+               structure
+               [:defns]
+               (fn [defns]
+                 (conj (or defns []) (str (second element)))))
 
-             (= function 'def)
-             (update-in
-              structure
-              [:defs]
-              (fn [defs]
-                (conj (or defs []) (str (second element)))))
+              (= function 'def)
+              (update-in
+               structure
+               [:defs]
+               (fn [defs]
+                 (conj (or defs []) (str (second element)))))
            
-             :else
-             structure))
-         structure))
-     {}
-     data)))
+              :else
+              structure))
+          structure))
+      {}
+      data))
+   (catch Exception e
+     (println "[ERROR] error analyzing " clj-path))))
 
 ;; useful for debug
 #_(run!
